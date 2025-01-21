@@ -1,0 +1,26 @@
+D002_DwellingType: detached, semi detached, mid terrace, end terrace
+D003_Region: Yorkshire and the Humber, North East
+D004_TenureType: private owner occupied
+V542_FloorPosition: House/Bungalow
+V534_TFAsurvey: >150
+D001_DwellingAge: < 10
+D082_MainHeatingSystemType: 1-15
+D097_DHWSystemType: 1-11
+V576_CuboidAttic: TRUE
+# -:-
+# -:- [Catalogue of Variables] ---------------------------------------------:-
+# -:-   see `l_EnHub.inputs` for more ranges and intervals ---------------:-
+# -:-
+# D002_DwellingType: detached, semi detached, mid terrace, end terrace, purpose built, converted, non residential
+# D003_Region: does not apply, no answer, North East, Yorkshire and the Humber, North West, East Midlands, West Midlands, South West, Eastern England, South East, London
+# D004_TenureType: housing association, local authority, private owner occupied, private rented
+# V573_Urbanity: City centre, Urban, Suburban residential, Rural residential, Village centre, Rural, Question Not Applicable, Unknown
+# V542_FloorPosition: House/Bungalow, Top Floor Flat, Mid Floor Flat, Ground floor flat, Basement Flat, Unknown
+# V534_TFAsurvey: <50, 200-250, >500
+# D001_DwellingAge: >1,< 11
+# D082_MainHeatingSystemType: 1-15
+# D097_DHWSystemType: 1-11
+# V576_CuboidAttic: TRUE, FALSE
+# D030_WallThickness: 0.15-0.64
+# V563_GlazingRatio: 0-1
+# D109_SolarDHWSystem: TRUE, FALSE

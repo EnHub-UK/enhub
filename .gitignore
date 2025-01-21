@@ -1,0 +1,16 @@
+*.Rproj
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+.DS_Store
+*.DS_Store
+inst/doc
+
+config/
+outcomes/
+/doc/
+/Meta/
+
+data-raw/

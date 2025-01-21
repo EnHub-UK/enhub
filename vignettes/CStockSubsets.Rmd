@@ -1,0 +1,202 @@
+---
+title: "3: Housing stock subsets"
+author: "G Sousa"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EnHub -- 3: Housing stock subsets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
+
+This vignette demonstrates how to extract <span style="color:#ff5ea1;">subsets</span> of the housing stock data.
+
+
+
+## Project set-up
+
+The following code blocks set up the project and define the custom parameters. See the vignette `01-GettingStarted.Rmd` for more information on the project set-up.
+
+```r
+library(enhub)
+```
+
+```r
+check_external_dependencies(redefine = FALSE)
+```
+
+```r
+init_project(core_data = 'ehs', core_mode = 'def', fresh_setup = TRUE)
+```
+
+
+
+
+## Evaluation
+
+### Display available options
+
+First, we generate a summary of the available options for the input set with `get_input_set()`. This function returns a list of the input set for the housing stock data.
+
+```r
+l_input_set <- get_input_set()
+```
+
+The initial 9 elements of the input group inputs by class and type, displayed below.
+
+```r
+l_input_set[1:9]
+```
+
+```sh
+$D002_DwellingType
+[1] "detached"        "semi detached"   "mid terrace"     "end terrace"     "purpose built"  
+[6] "converted"       "non residential"
+
+$D003_Region
+[1] "North East"               "Yorkshire and the Humber" "North West"              
+[4] "East Midlands"            "West Midlands"            "South West"              
+[7] "Eastern England"          "South East"               "London"                  
+
+$D001_DwellingAge
+ [1] "Pre 1850"  "1850-1899" "1900-1918" "1919-1944" "1945-1964" "1965-1974" "1975-1980" "1981-1990"
+ [9] "1991-1995" "1996-2002" "Post 2002"
+
+$D004_TenureType
+[1] "private owner occupied" "local authority"        "housing association"   
+[4] "private rented"        
+
+$V573_Urbanity
+[1] "City centre"             "Urban"                   "Suburban residential"   
+[4] "Rural residential"       "Village centre"          "Rural"                  
+[7] "Question Not Applicable" "Unknown"                
+
+$V542_FloorPosition
+[1] "House/Bungalow"    "Top Floor Flat"    "Mid Floor Flat"    "Ground floor flat"
+[5] "Basement Flat"     "Unknown"          
+
+$D082_MainHeatingSystemType
+ [1] "Gas standard"                         "Gas - combi"                         
+ [3] "Gas back boiler"                      "Oil standard"                        
+ [5] "Solid boiler (house coal/anthracite)" "Electric boiler"                     
+ [7] "Electric storage*"                    "Electric room heater"                
+ [9] "Warm air - gas fired"                 "Warm air - electric"                 
+[11] "Community heating without CHP"        "Community heating with CHP"          
+[13] "Biomass boiler"                       "Ground source heat pump"             
+[15] "Air source heat pump"                
+
+$D097_DHWSystemType
+ [1] "Gas standard"                         "Gas - combi (storage)"               
+ [3] "Gas - combi (instantaneous)"          "Gas back boiler"                     
+ [5] "Oil standard"                         "Solid boiler (house coal/anthracite)"
+ [7] "Biomass boiler"                       "Electric boiler"                     
+ [9] "Other electric"                       "Community heating without CHP"       
+[11] "Community heating with CHP"          
+
+$binary.variables
+ [1] "D054_DraughtLobby"                 "D096_DHWSystemWithCentralHeating" 
+ [3] "H096_DHWPrimaryPipeworkInsulation" "D108_DHWCylinderstat"             
+ [5] "D109_SolarDHWSystem"               "D110_SolarDHWInCylinder"          
+ [7] "V576_CuboidAttic"                  "V577_CuboidBasement"              
+ [9] "V578_CuboidAttachmentFront"        "V579_CuboidAttachmentRear"        
+[11] "V580_CuboidAttachmentLeft"         "V581_CuboidAttachmentRight"       
+```
+
+The 10th element of the input group is collects the description of variables using `describe()` function. 
+
+```r
+l_input_set[10]
+```
+
+To simplify further filtering, we can use the `combine_ehs()` function. This function merges all ehs-related data and returns a tibble containing all available survey variables.
+
+```r
+combine_ehs()
+```
+
+```sh
+# A tibble: 14,951 × 219
+   V001_HousingCode V002_DwellingWeight D003_Region D004_TenureType        D002_DwellingType
+   <chr>                          <dbl> <fct>       <fct>                  <fct>            
+ 1 I0011105                        1200 South West  private rented         mid terrace      
+ 2 I0011109                        1218 South West  private rented         detached         
+ 3 I0011110                         944 South West  private owner occupied detached         
+ 4 I0011111                        1147 South West  private rented         detached         
+ 5 I0011202                         714 South West  housing association    purpose built    
+ 6 I0011203                        1442 South West  private rented         purpose built    
+ 7 I0011204                        1277 South West  private owner occupied purpose built    
+ 8 I0011303                        1445 South West  private owner occupied detached         
+ 9 I0011305                         624 South West  local authority        semi detached    
+10 I0011311                         954 South West  private rented         semi detached    
+# ℹ 14,941 more rows
+```
+
+The returned tibble can then be used to filter data using any R-based filtering method.
+
+
+
+### Filter data
+
+For example, we can filter the data to include only *semi-detached* houses with *two* floors, a *basement*, and a main *heating system type of 1, 2, or 3*.
+
+```r
+d_ehs_subset <-
+  combine_ehs() %>% filter(
+    D002_DwellingType == "semi detached" &
+    V574_CuboidFloors == 2 &
+    V577_CuboidBasement == TRUE &
+    D082_MainHeatingSystemType <= 3)
+```
+
+Or we can filter the data to include only *terraced* houses in *industrial* areas in the *Yorkshire and the Humber* region with a total floor area (TFA) survey value of less than *105* m<sup>2</sup>.
+
+```r
+d_ehs_subset <-
+  combine_ehs() %>% filter(
+    .hubtyp == "terraced",
+    .hubage == "industrial",
+    V573_Urbanity == "Village centre",
+    D003_Region == "Yorkshire and the Humber",
+    V534_TFAsurvey < 105
+  )
+```
+
+
+### Evaluate subset
+
+Once we have the subset, we can extract the housing codes or indices to be used in the simulation.
+
+```r
+stock_sample <- get_id_code(d_ehs_subset$V001_HousingCode)
+```
+
+For sanity, we can check the simulation status of the extracted housing codes.
+```r
+check_simulation_status()
+```
+
+And finally, we can generate the IDF for the extracted housing codes.
+```r
+lapply(stock_sample, generate_idf, fixed_schedule = F, resolution = "h")
+```
+
+Once the IDFs are generated, we can simulate them using EnergyPlus+. FIrst we check that the generated IDFs are available for simulation.
+
+```r
+(stock_sample <- check_simulation_status())
+```
+
+And then we simulate the available IDFs.
+
+```r
+invisible(pblapply(stock_sample$queued, simulate_available_idfs))
+```
+
+
+
+***

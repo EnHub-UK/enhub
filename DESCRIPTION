@@ -1,0 +1,34 @@
+Package: enhub
+Title: A platform for the dynamic simulation of national housing stocks
+Version: 0.0.0.9001
+Authors@R: 
+    person("Gustavo", "Sousa", , "g.sousa@sheffield.ac.uk", 
+      role = c("aut", "cre"),
+      comment = c(ORCID = "0000-0001-7433-874X"))
+Description: This platform integrates the strengths of pre-existing housing stock energy models, notably their delineation of stock composition and attribution, albeit in a simplified form. It incorporates functionalities to quantify uncertainties and assess the potential consequences of policies and strategies aimed at decarbonising the UK housing stock.
+License: CC BY-NC-SA 4.0 + file LICENSE
+Language: en-GB
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    dplyr (>= 1.1.4),
+    jsonlite (>= 1.8.8),
+    lubridate (>= 1.9.3),
+    pbapply (>= 1.7.2),
+    plyr (>= 1.8.9),
+    rlang (>= 1.1.4),
+    survey (>= 4.4.2),
+    tibble (>= 3.2.1),
+    tidyr (>= 1.3.1),
+    yaml (>= 2.3.10)
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+LazyData: true
+URL: https://github.com/EnHub-UK/enhub.git

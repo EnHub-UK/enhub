@@ -1,0 +1,23 @@
+{
+    "D002_DwellingType": [
+        "detached",
+        "semi detached",
+        "mid terrace",
+        "end terrace"
+    ],
+    "D003_Region": [
+        "Yorkshire and the Humber",
+        "North East"
+    ],
+    "D004_TenureType": [
+        "private owner occupied"
+    ],
+    "V542_FloorPosition": [
+        "House/Bungalow"
+    ],
+    "V534_TFAsurvey": ">150",
+    "D001_DwellingAge": "< 10",
+    "D082_MainHeatingSystemType": "1-15",
+    "D097_DHWSystemType": "1-11",
+    "V576_CuboidAttic": "TRUE"
+}

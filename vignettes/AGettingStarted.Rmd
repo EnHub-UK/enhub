@@ -1,0 +1,198 @@
+---
+title: "1: Getting started"
+author: "G Sousa"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EnHub -- 1: Getting started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
+
+This vignette introduces the `EnHub` library.
+
+
+## Overview
+
+To begin, we'll load the library `EnHub` and check if all external dependencies are installed.
+
+```r
+library(enhub)
+```
+
+## External dependencies
+
+We then check if the external dependencies are available and properly referenced.
+
+```r
+check_external_dependencies(redefine = FALSE)
+```
+
+If the configuration file exists, its data will be read, with more or less the following values:
+
+```json
+Great!
+
+{
+  "eplus": {
+    "dir": "/Applications/EnergyPlus-24-1-0/",
+    "version": 24.1
+  },
+  "gzip": {
+    "bin": "/usr/bin/gzip"
+  },
+  "font": {
+    "name": "CMU Concrete"
+  },
+  "epw": {
+    "source": "https://climate.onebuilding.org/default.html",
+    "url": "https://storage.googleapis.com/climate-onebuilding/"
+  },
+  "github": {
+    "url": "github.com/Enhub-UK/Platform"
+  }
+}
+
+✔ configuration stored in <local-dir>/config/external.yaml
+
+```
+
+Otherwise, it will ask for details and store the file `external.yaml` in a local folder.
+
+
+On Windows, the `gzip` binary is not always present. If a copy of `gzip.exe` is avilable, this can be referenced in the `external.yaml` file. During the setup, if the path of gzip is not found, it will use the standard `zip` executable retrieved by `Sys.getenv("R_ZIPCMD", "zip")`.
+
+
+## Intialise project
+
+Once the `external.yaml` is created or read, the project needs to initialise. This will create a dictionary of global inputs, and it will assign file and folder paths based on the location in which the project is called.
+
+```r
+init_project(core_data = 'ehs', core_mode = 'def', fresh_setup = TRUE)
+```
+
+Upon termination the following message will be displayed:
+```
+EnHub path ➥ <local-dir>
+  EP+ path ➥ /Applications/EnergyPlus-24-1-0
+```
+
+❗️ Please be aware that, in addition to the couple of configuration files added to the `config` folder, located where the project is initialised, `enhub` will store some additional *persistent user data* in a local folder → `tools::R_user_dir("enhub")`. If wanted, this folder can be reset with the `reset_folder()` function.
+
+
+
+
+
+
+## Evaluation
+
+### IDF generation
+
+The generation of an IDF file is the first step in the evaluation process. The following code block generates an IDF file based on the index provided in the `ehs` dictionary. The `fixed_schedule` parameter is set to `FALSE`, indicating that the associated schedules for occupancy and household appliances will be generated using randomisation, and the `resolution` parameter is set to `h` indicating that the simualtion timestep and associated outputs will have an *hourly* resolution.
+
+```r
+id_model <- 1
+idf_model <- generate_idf(id_model, fixed_schedule = FALSE, resolution = 'h')
+
+```
+
+```sh
+-- EPW files are ready!
+✔ [done] IDF project configuration
+✔ [done] Weather and simulation parameters
+✔ [done] Geometry and thermal zones
+✔ [done] Occupancy and basic schedules
+✔ [done] Fabric and heat loss parameters
+✔ [done] Internal loads and infiltration
+✔ [done] Energy system and water services
+✔ [done] Low-zero carbon technology
+✔ [done] IDF requested output variables
+
+✔ IDF generated and stored in <local-dir>/outcomes/simulation/a_inputs/1
+```
+
+During the IDF generation, a weather file needs to be referenced---as it is also required when running an `/energyplus` simulation. The weather file is selected based on the `ehs` dictionary, which is limted to the 9 regions in England (NUTS-1); however, a custom weather file can be directly assigned. Weather files (or filepacks) are stored in the cloud and downloaded---if required---when generating the IDF. To minimise the download time, the weather filepacks are downloaded and stored locally. The following code block displays the referenced weather file information.
+
+```r
+display_epw_info(idf_model$epw)
+```
+
+```json
+[
+  {
+    "station": 38270,
+    "place": "Plymouth-Mount Batten",
+    "admin": "ENG",
+    "country": "GBR",
+    "lat": 50.36,
+    "lon": -4.12,
+    "tzn": 0,
+    "elv": 27,
+    "hist": false,
+    "uuid": "1ed2fe15-552a-4d3d-8cb2-00075c681278",
+    "file_path": "<local-data>/org.R-project.R/R/enhub/data_sources/_weather/stations/GBR_ENG_Plymouth-Mount.Batten.038270_TMYx/data.epw"
+  }
+]
+```
+
+### EnergyPlus simulation
+
+The following code block runs the EnergyPlus simulation. The `run_energy_plus` function requires the IDF model and the assigned EPW path as inputs.
+
+```r
+run_energy_plus(id_model, idf_model$epw$epw)
+```
+
+```sh
+command >: /Applications/EnergyPlus-24-1-0/energyplus\
+-w '<local-data>/org.R-project.R/R/enhub/data_sources/_weather/
+  stations/GBR_ENG_Plymouth-Mount.Batten.038270_TMYx/data.epw'\
+-d <local-dir>/outcomes/simulation/Output\
+-r <local-dir>/outcomes/simulation/a_inputs/1/model_sim.json
+
+✔ simulation completed!
+
+-- 1.51 minutes of processing time
+```
+
+### Evaluation of results
+
+The following code block checks the simulation status and extracts the simulation outputs. The `extract_simulation_outputs` parses the EnergyPlus output files and returns a list of dataframes and dictionaries.
+
+```r
+check_simulation_status(id_model)
+l_results <- extract_simulation_outputs(id_model)
+```
+
+```sh
+✔ [done] Results folder found
+✔ [done] Loaded raw simulation outcomes
+✔ [done] Parsed simulation outcomes
+✔ [done] Summary card generated
+```
+
+An *optional* method can be used to generate evaluation charts based on the simulation outputs. The `generate_evaluation_charts` function requires the model index and the list of results as inputs.
+
+```r
+generate_evaluation_charts(id_model, l_results)
+```
+
+### Post-evaluation
+
+The following *optional* method assigns a unique identifier to the collection of input and output files. This unique identifier is useful for persistently storing and retrieving results, ensuring that each set of files can be easily referenced and managed over time.
+
+```r
+rename_model_with_uuid(id_model)
+```
+
+```sh
+✔ [done] Directories renamed with UUID
+1 → 9a0b586d-5993-4710-8cd9-1d24927ee6c6
+```
+
+***

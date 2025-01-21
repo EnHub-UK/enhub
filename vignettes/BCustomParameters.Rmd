@@ -1,0 +1,143 @@
+---
+title: "2: Define custom parameters"
+author: "G Sousa"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EnHub -- 2: Define custom parameters}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
+
+This vignette demonstrates how to pass <span style="color:#ff5ea1;">custom paramaters</span> during the generation of an IDF file.
+
+
+
+## Project set-up
+
+The following code blocks set up the project and define the custom parameters. See the vignette `01-GettingStarted.Rmd` for more information on the project set-up.
+
+```r
+library(enhub)
+```
+
+```r
+check_external_dependencies(redefine = FALSE)
+```
+
+```r
+init_project(core_data = 'ehs', core_mode = 'def', fresh_setup = TRUE)
+```
+
+
+
+
+## Evaluation
+
+### Global parameters
+
+First, we can see the default global parameters. These are defined in `config/global.json` and can be modified by the user; however, once the project is initialised, they are loaded into the global environment (in the list `the$GLOBAL_PAR`).
+
+```r
+the$GLOBAL_PAR %>% jsonlite::toJSON(pretty = TRUE, auto_unbox = TRUE)
+```
+
+```json
+{
+  "access": "front",
+  "battery": false,
+  "cooling_setpoints": "constant",
+  "domestic_hot_water_temperature": 72.4456,
+  "enery_use_intensity": "normal",
+  "flat_roof": false,
+  "floor_height": 2.9,
+  "flow_service": 0.0018,
+  "heat_pump_cop": 3.2,
+  "heating_ashp": "integrated",
+  "heating_availability": "intermittent",
+  "heating_fraction_schedule": "",
+  "heating_gshp": "borehole",
+  "heating_hp_variation": "high-temp",
+  "heating_setpoints": "constant",
+  "heating_water_temperature": 70.4456,
+  "home_appliances_on": true,
+  "ideal_load_energy_system": false,
+  "infiltration_mixing": false,
+  "infiltration_mode": "simple",
+  "layout_range": [2, 2],
+  "occupancy_on": true,
+  "origin": [0, 0, 0],
+  "outdoor_air_flow": 0.0094,
+  "outdoor_air_schedule": "Always On",
+  "session_seed": 8151623,
+  "set_point_cooling": 27.0102,
+  "set_point_heating": 19.5083,
+  "simulation_period": [1, 1, 12, 31],
+  "simulation_timestep": 4,
+  "simulation_year": 2021,
+  "underfloor_heat": false,
+  "ventilation_on": true,
+  "window_to_wall_per_side": {
+    "front": 25,
+    "left": 25,
+    "rear": 25,
+    "right": 25
+  }
+} 
+```
+
+
+### Define custom parameters
+
+We can use the example from vignette `01-GettingStarted.Rmd`. The dwelling with index 1 has a typical centrally heated system with a gas boiler. We can change the heating system to an air source heat pump with a supplementary electric heater.
+
+```r
+the$GLOBAL_PAR$heating_system_code <- "MSH15DHW8"
+the$GLOBAL_PAR$heating_ashp <- "supplementary"
+```
+
+In the example from the vignette, we assigned the weather file-pack 'GBR_ENG_Plymouth-Mount.Batten.038270_TMYx' to the model. We can change this to 'GBR_ENG_London.Wea.Ctr-St.James.Park.037700_TMYx'.
+
+```r
+the$GLOBAL_PAR$use_weather_file <- "GBR_ENG_London.Wea.Ctr-St.James.Park.037700_TMYx"
+```
+
+Finally, we can change the heating availability or regime. The default is 'intermittent', but we can change it to 'constant'.
+
+```r
+the$GLOBAL_PAR$heating_availability <- "constant"
+```
+
+
+
+### IDF generation, simulation and evaluation
+
+Once these global paramaters are defined, we can generate the IDF file. The following code block generates the IDF file for the model with index 1.
+
+```r
+id_model <- 1
+idf_model <- generate_idf(id_model, fixed_schedule = FALSE, resolution = 'h')
+
+```
+
+The rest is the same as in the vignette `01-GettingStarted.Rmd`.
+
+```r
+run_energy_plus(id_model, idf_model$epw$epw)
+```
+
+```r
+check_simulation_status(id_model)
+l_results <- extract_simulation_outputs(id_model)
+```
+
+```r
+generate_evaluation_charts(id_model, l_results)
+```
+
+***
